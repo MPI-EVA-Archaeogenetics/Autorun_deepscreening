@@ -152,13 +152,13 @@ if (length(unique(sequencingAll$raw_data.Full_Raw_Data_Id)) == length(unique(aut
   if(sequencing_type == "No_Pathogen_Capture"){
     pathogenCaptureCodes <- read.csv("Probe_Set_Pathogens.csv",stringsAsFactors = F)
     results %>%
-      filter(str_detect(R1, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
+      filter(!str_detect(R1, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
       write_tsv(file= output_file)
   } 
   else if(sequencing_type == "Pathogen_Capture"){
     pathogenCaptureCodes <- read.csv("Probe_Set_Pathogens.csv",stringsAsFactors = F)
     results %>%
-      filter(!str_detect(R1, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
+      filter(str_detect(R1, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
       write_tsv(file= output_file)
   } 
   else if(sequencing_type == "All"){
