@@ -69,7 +69,7 @@ if (opts$outdir == ".") {
   write(paste0("[prepare_eager_deepScreening_tsv.R] No output directory specified, TSV will be stored in the currect directory under: ",analysis_type,"/",sequencing_type,"/",sequencing_batch_id), stdout())
 }
 
-output_dir <- paste0(opts$outdir,"/",analysis_type,"/",sequencing_type,"/",sequencing_batch_id)
+output_dir <- paste0(opts$outdir,"/",analysis_type,"/",sequencing_type)
 output_file <- paste0(output_dir,"/",sequencing_batch_id,"_eager_input.tsv")
 
 
