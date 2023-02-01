@@ -95,7 +95,7 @@ complete_pandora_table <- join_pandora_tables(
   convert_all_ids_to_values(., con = con)
 
 sequencingAll <- complete_pandora_table %>%
-  filter(sequencing.Batch == sequencing_batch_id) %>%
+  filter(sequencing.Run_Id == sequencing_batch_id) %>%
   filter(sample.Ethically_culturally_sensitive == FALSE) %>%
   filter(!is.na(raw_data.Full_Raw_Data_Id))
 
@@ -149,6 +149,7 @@ if (length(unique(sequencingAll$raw_data.Full_Raw_Data_Id)) == length(unique(aut
       "R2",
       "BAM"
     )
+
   if(sequencing_type == "No_Pathogen_Capture"){
     pathogenCaptureCodes <- read.csv("Probe_Set_Pathogens.csv",stringsAsFactors = F)
     results %>%
