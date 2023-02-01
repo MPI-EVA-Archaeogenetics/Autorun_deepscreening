@@ -106,7 +106,7 @@ autorunFinished <- sequencingAll %>%
 if (length(unique(sequencingAll$raw_data.Full_Raw_Data_Id)) == length(unique(autorunFinished$raw_data.Full_Raw_Data_Id))) {
   write("Autorun has finished", stdout())
   results <- autorunFinished %>%
-    select(individual.Full_Individual_Id,individual.Organism,library.Full_Library_Id,library.Protocol,analysis.Result,sequencing.Sequencing_Id,sequencing.Full_Sequencing_Id,sequencing.Single_Stranded) %>%
+    select(individual.Full_Individual_Id,individual.Organism,library.Full_Library_Id,library.Protocol,analysis.Result,sequencing.Sequencing_Id,sequencing.Full_Sequencing_Id,sequencing.Single_Stranded, capture.Capture_Id) %>%
     mutate(
       Colour_Chemistry=4,
       SeqType="SE",
@@ -147,23 +147,28 @@ if (length(unique(sequencingAll$raw_data.Full_Raw_Data_Id)) == length(unique(aut
       "UDG_Treatment",
       "R1"=analysis.Result,
       "R2",
-      "BAM"
+      "BAM",
+      "Capture"=capture.Capture_Id
     )
 
   if(sequencing_type == "No_Pathogen_Capture"){
     pathogenCaptureCodes <- read.csv("Probe_Set_Pathogens.csv",stringsAsFactors = F)
     results %>%
-      filter(!str_detect(R1, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
+      filter(!str_detect(Capture, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
+      select(-Capture) %>%
       write_tsv(file= output_file)
   } 
   else if(sequencing_type == "Pathogen_Capture"){
     pathogenCaptureCodes <- read.csv("Probe_Set_Pathogens.csv",stringsAsFactors = F)
     results %>%
-      filter(str_detect(R1, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
+      filter(str_detect(Capture, paste(pathogenCaptureCodes$Short.Name, collapse = '|'))) %>%
+      select(-Capture) %>%
       write_tsv(file= output_file)
   } 
   else if(sequencing_type == "All"){
-    write_tsv(results, file= output_file)
+    results %>%
+      select(-Capture) %>%
+      write_tsv(file= output_file)
   }
   write(paste0("TSV created in: ",output_file), stdout())
   write("[prepare_eager_deepScreening_tsv.R] WARNING: if UDG treatment could not be determine, it was assumed that no UDG treatment was performed at all", stdout())
