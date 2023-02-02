@@ -64,6 +64,7 @@ cred_file <- arguments$args
 sequencing_batch_id <- opts$sequencing_batch_id
 analysis_type <- opts$analysis_type
 sequencing_type <- opts$sequencing_type
+debug <- opts$debug
 
 if (is.na(sequencing_batch_id)) {
   stop(call.=F, "\n[prepare_eager_deepScreening_tsv.R] ERROR: No sequencing batch ID type provided with -s. Please see --help for more information.\n")
