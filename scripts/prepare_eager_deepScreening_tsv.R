@@ -103,7 +103,8 @@ complete_pandora_table <- join_pandora_tables(
 sequencingAll <- complete_pandora_table %>%
   filter(sequencing.Run_Id == sequencing_batch_id) %>%
   filter(sample.Ethically_culturally_sensitive == FALSE) %>%
-  filter(!is.na(raw_data.Full_Raw_Data_Id))
+  filter(!is.na(raw_data.Full_Raw_Data_Id)) %>%
+  filter(!raw_data.FastQ_Files == "")
 
 autorunFinished <- sequencingAll %>%
   filter(analysis.Analysis_Id == analysis_type) %>%
