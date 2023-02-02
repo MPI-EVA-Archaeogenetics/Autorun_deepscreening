@@ -1,0 +1,6 @@
+eager_inputs/
+eager_outputs/
+scripts/.credentialsCluster
+scripts/Probe_Set_Pathogens.csv
+debugging/
+scripts/.nfs*
