@@ -53,7 +53,7 @@ parser <- add_option(parser, c("-t", "--sequencing_type"), type = 'character',
                      help= "The sequencing type one wants to deep screen. By default, it will output all the libraries in the tsv. Should be one of: 'No_Pathogen_Capture', 'Pathogen_Capture', 'All'",
                      default = "Allx")
 parser <- add_option(parser, c("-d","--debug"), action="store_true",
-                     dest = "debug",
+                     dest = "debugg",
                      help= "Store non complete Autorun in file for debugging purposes",
                      default = FALSE)
 
@@ -64,7 +64,8 @@ cred_file <- arguments$args
 sequencing_batch_id <- opts$sequencing_batch_id
 analysis_type <- opts$analysis_type
 sequencing_type <- opts$sequencing_type
-debug <- opts$debug
+debugg <- opts$debugg
+print(debugg)
 
 if (is.na(sequencing_batch_id)) {
   stop(call.=F, "\n[prepare_eager_deepScreening_tsv.R] ERROR: No sequencing batch ID type provided with -s. Please see --help for more information.\n")
@@ -178,7 +179,7 @@ if (length(unique(sequencingAll$raw_data.Full_Raw_Data_Id)) == length(unique(aut
   write(paste0("TSV created in: ",output_file), stdout())
   write("[prepare_eager_deepScreening_tsv.R] WARNING: if UDG treatment could not be determine, it was assumed that no UDG treatment was performed at all", stdout())
 } else {
-  if( isTRUE(debug) ) {
+  if( debugg == TRUE ) {
     write_csv(sequencing_batch_id, append = TRUE, file = "../debugging/notFinishedAutorun.csv")
     write("[prepare_eager_deepScreening_tsv.R] WARNING: Prescreening has not finished yet!! No TSV produced. Sequencing batch ID added to:debugging/notFinishedAutorun.csv", stdout())
   }
