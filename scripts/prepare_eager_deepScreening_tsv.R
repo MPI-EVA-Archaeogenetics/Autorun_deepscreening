@@ -180,8 +180,8 @@ if (length(unique(sequencingAll$raw_data.Full_Raw_Data_Id)) == length(unique(aut
   write("[prepare_eager_deepScreening_tsv.R] WARNING: if UDG treatment could not be determine, it was assumed that no UDG treatment was performed at all", stdout())
 } else {
   if( debugg == TRUE ) {
-    write_csv(sequencing_batch_id, append = TRUE, file = "../debugging/notFinishedAutorun.csv")
-    write("[prepare_eager_deepScreening_tsv.R] WARNING: Prescreening has not finished yet!! No TSV produced. Sequencing batch ID added to:debugging/notFinishedAutorun.csv", stdout())
+    write(sequencing_batch_id, append = TRUE, file = "../debugging/notFinishedAutorun.txt")
+    write("[prepare_eager_deepScreening_tsv.R] WARNING: Prescreening has not finished yet!! No TSV produced. Sequencing batch ID added to:debugging/notFinishedAutorun.txt", stdout())
   }
   else{
     write("[prepare_eager_deepScreening_tsv.R] WARNING: Prescreening has not finished yet!! No TSV produced.", stdout())
