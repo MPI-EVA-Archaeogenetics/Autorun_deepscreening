@@ -8,7 +8,7 @@ nextflowPath='/home/srv_pestis_screening/.conda/envs/nextflow/bin/'
 for i in ${finishedJobs[@]}; do
     isInFile=0
     base=$(echo ${i} | awk 'BEGIN{FS=OFS="/";} {$NF=$(NF-1)=""; print $0}' | sed 's/\/$//')
-    isInFile=$(grep -Fc "${base}" ../debugging/finished_cleaned_runs.txt)
+    isInFile=$(grep -Fc "${base}" /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/debugging/finished_cleaned_runs.txt)
     if [[ ${isInFile} -eq 0 ]]; then
         DIR=${base}/maltextract/
         if [ -d "${DIR}" ]
