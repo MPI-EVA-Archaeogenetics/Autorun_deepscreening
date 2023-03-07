@@ -7,3 +7,4 @@ scripts/.nfs*
 queue/
 array_Logs/
 scripts/.nextflow/
+scripts/.log
