@@ -51,7 +51,7 @@ parser <- add_option(parser, c("-t", "--sequencing_type"), type = 'character',
                      action = "callback", dest = "sequencing_type",
                      callback = validate_sequencing_type,
                      help= "The sequencing type one wants to deep screen. By default, it will output all the libraries in the tsv. Should be one of: 'No_Pathogen_Capture', 'Pathogen_Capture', 'All'",
-                     default = "Allx")
+                     default = "All")
 parser <- add_option(parser, c("-d","--debug"), action="store_true",
                      dest = "debugg",
                      help= "Store non complete Autorun in file for debugging purposes",
