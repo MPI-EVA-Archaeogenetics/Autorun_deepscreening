@@ -86,7 +86,9 @@ sites_deepscreening <- complete_pandora_table %>%
 list_heatmap <- list()
 for (sequencing in unique(sites_deepscreening$sequencing.Run_Id)) {
   heatmap <- paste(results_path_deepscreening,sequencing,"maltextract","results","heatmap_overview_Wevid.tsv", sep = "/")
-  list_heatmap <- append(list_heatmap, heatmap)
+  if (file.exists(heatmap)) {
+    list_heatmap <- append(list_heatmap, heatmap)
+  }
 }
 
 matchExpression <- paste(unique(sites_deepscreening$individual.Full_Individual_Id), collapse = "|")
