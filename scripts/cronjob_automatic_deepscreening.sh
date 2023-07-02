@@ -10,6 +10,9 @@
 
 #Create tsv for any of new runs in 2023 done in my aida_andrades crontab since problems with R arise
 
+#Change to scripts directories
+cd /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts
+
 #Identify batches without any libraries in the tsv
 bash /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/identify_empty_tsv.sh
 

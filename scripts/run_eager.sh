@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. /etc/profile
+
 # Help message
 Help()
 {
@@ -53,7 +55,7 @@ mainInDir='/mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager
 ## Path to output directory
 mainOutDir='/mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_outputs'
 ##Fix eager version to 2.4.6 to use the correct malt version
-eager_version='2.4.6'
+eager_version='2.4.7'
 ##Path to config file for autorun deep screening
 autorun_config='/mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/conf/Autorun_deepscreening.config'
 
@@ -161,7 +163,7 @@ if [[ ${array} == 'TRUE' ]]; then
     ## -tc 2 ## Number of concurrent spawner jobs (10)
     ## -t 1-${jn} ## The number of array jobs (from 1 to $jn)
     echo "qsub -V -S /bin/bash -l h_vmem=40G -pe smp 2 -N AD_spawner_$(basename ${temp_file}) -cwd -j y -b y -o /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/array_Logs/$(basename ${temp_file}) -tc 2 -t 1-${jn} /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/submit_as_array.sh ${temp_file}"
-    qsub -V -S /bin/bash -l h_vmem=40G -pe smp 2 -N AD_spawner_$(basename ${temp_file}) -cwd -j y -b y -o /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/array_Logs/$(basename ${temp_file}) -tc 2 -t 1-${jn} /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/submit_as_array.sh ${temp_file}
+    /opt/sge/bin/lx-amd64/qsub -V -S /bin/bash -l h_vmem=40G -pe smp 2 -N AD_spawner_$(basename ${temp_file}) -cwd -j y -b y -o /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/array_Logs/$(basename ${temp_file}) -tc 2 -t 1-${jn} /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/submit_as_array.sh ${temp_file}
 fi
 
 

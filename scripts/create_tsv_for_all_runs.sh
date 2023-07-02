@@ -15,10 +15,10 @@ fi
 
 for i in ${allRuns[@]}; do
     echo "Checking ${i}"
-    tsv=`ls ../eager_inputs/Bacterial_Viral_Prescreening/No_Pathogen_Capture/${i}*`
+    tsv=`ls /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_inputs/Bacterial_Viral_Prescreening/No_Pathogen_Capture/${i}*`
     if [ -z ${tsv} ]
     then
-        Rscript prepare_eager_deepScreening_tsv.R \
+        Rscript /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/prepare_eager_deepScreening_tsv.R \
         -s ${i} \
         -a ${analysis} \
         -o /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_inputs \
@@ -26,6 +26,21 @@ for i in ${allRuns[@]}; do
         -d \
         /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/.credentialsCluster
     else
-        echo "${tsv} already exists, my job here is done!"
+        echo "${tsv} already exists, checking if ${analysis} has been rerun in Autorun"
+        dateTsv=`date +%F -r ${tsv}`
+        numberModifiedFiles=`find /mnt/archgen/Autorun/Results/Bacterial_Viral_Prescreening/${i} -type f -newermt ${dateTsv} | wc -l`
+        if [ ${numberModifiedFiles} -eq 0 ]
+        then
+            echo "${tsv} is up to date, my job here is done!"
+        else
+            Rscript /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/prepare_eager_deepScreening_tsv.R \
+            -s ${i} \
+            -a ${analysis} \
+            -o /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_inputs \
+            -t ${type} \
+            -d \
+            /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/scripts/.credentialsCluster
+            echo "${tsv} is updated"
+        fi
     fi
 done

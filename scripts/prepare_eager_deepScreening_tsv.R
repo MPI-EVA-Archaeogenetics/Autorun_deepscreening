@@ -85,9 +85,10 @@ if (!dir.exists(output_dir)) {
   dir.create(output_dir, showWarnings = F, recursive = T) ## Create output directory and subdirs if they do not exist.
 }
 
-if(file.exists(output_file)){
-  stop(call. = F, paste0("\n[prepare_eager_deepScreening_tsv.R] ",output_file," already exists, my job here is done!\nIf you want to remake the TSV please remove the already existing one"))
-}
+#Removed on 2023-06-29 to ensure that rerunned Autorun batches are rescreened
+#if(file.exists(output_file)){
+#  stop(call. = F, paste0("\n[prepare_eager_deepScreening_tsv.R] ",output_file," already exists, my job here is done!\nIf you want to remake the TSV please remove the already existing one"))
+#}
 con <- sidora.core::get_pandora_connection(cred_file)
 
 complete_pandora_table <- join_pandora_tables(
@@ -139,8 +140,8 @@ if (length(unique(sequencingAll$raw_data.Full_Raw_Data_Id)) == length(unique(aut
       ),
       ## Also add the suffix to the Sample_ID part of the Library_ID. This ensures that in the MultiQC report, the ssDNA libraries will be sorted after the ssDNA sample.
       Library_ID = case_when(
-        sequencing.Single_Stranded == 'yes' ~ paste0(Sample_Name, ".", stringr::str_split_fixed(library.Full_Library_Id, "\\.", 2)[,2]),
-        TRUE ~ library.Full_Library_Id
+        sequencing.Single_Stranded == 'yes' ~ paste0(Sample_Name, ".", stringr::str_split_fixed(sequencing.Full_Sequencing_Id, "\\.", 2)[,2]),
+        TRUE ~ sequencing.Full_Sequencing_Id
       )
     ) %>%
     select(

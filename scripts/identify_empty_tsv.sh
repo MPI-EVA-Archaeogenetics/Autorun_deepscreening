@@ -1,8 +1,8 @@
 #!/bin/bash
 
-input=../eager_inputs/Bacterial_Viral_Prescreening/No_Pathogen_Capture
+input=/mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_inputs/Bacterial_Viral_Prescreening/No_Pathogen_Capture
 
-outputFile=../debugging/List_empty_batches.tsv
+outputFile=/mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/debugging/List_empty_batches.tsv
 
 allTSV=($(find ${input} -name "*_eager_input.tsv"))
 
