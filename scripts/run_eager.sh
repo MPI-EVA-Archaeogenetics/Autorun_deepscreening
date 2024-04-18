@@ -95,6 +95,10 @@ for analysis_type in "Bacterial_Viral_Prescreening"; do
                 ##This is check with -nt in the if statement
                 multiqc_file=$(find ${eager_output_dir}/multiqc -name "*multiqc_report.html")
                 if [[ ${eager_input} -nt ${multiqc_file} ]]; then
+                    if [ -d ${eager_output_dir} ]; then
+                        rm -rf ${eager_output_dir}
+                        mkdir -p ${eager_output_dir} 
+                    fi
                     if [[ ${array} == 'TRUE' ]]; then
                         ## For array submissions, the commands to be run will be added one by one to the temp_file
                         ## Then once all jobs have been added, submit that to qsub with each line being its own job.

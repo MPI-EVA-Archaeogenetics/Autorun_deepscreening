@@ -2,7 +2,7 @@
 
 ##Script to clean up finished jobs due to issue with copying of the maltextract results
 
-finishedJobs=($(find /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_outputs/Bacterial_Viral_Prescreening/No_Pathogen_Capture/*/multiqc/ -name "*multiqc_report.*"))
+finishedJobs=($(find /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_outputs/Bacterial_Viral_Prescreening/No_Pathogen_Capture/*/multiqc/ -name "*multiqc_report.html"))
 nextflowPath='/home/srv_pestis_screening/.conda/envs/nextflow/bin/'
 
 for i in ${finishedJobs[@]}; do
@@ -20,6 +20,7 @@ for i in ${finishedJobs[@]}; do
                 echo ${base} >> /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/debugging/finished_cleaned_runs.txt
             else
                 echo "$DIR is Empty"
+                echo ${DIR} >> /mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/debugging/maltextrat_dir_notcopied.txt
 	        fi
         else
 	        echo "Directory $DIR not found."
