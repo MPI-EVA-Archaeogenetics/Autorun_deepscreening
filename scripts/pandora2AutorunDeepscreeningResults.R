@@ -58,6 +58,7 @@ extractLibraries <- function(nameTable, folder, matchExpression, outdir, pathDee
   output_table <- paste(outdir, nameTable, sep = "/")
   write_tsv(table_combined, output_table)
   
+  return(table_combined)
 }
 
 ## Parse arguments ----------------------------
@@ -111,12 +112,18 @@ complete_pandora_table <- join_pandora_tables(
       c("TAB_Site", "TAB_Raw_Data")
     )), con = con
   )
-)
+) %>%
+  convert_all_ids_to_values(., con = con)
 
 libraries_deepscreening <- complete_pandora_table %>%
   filter(library.Full_Library_Id %in% libraries$Library_Id) %>%
   filter(!is.na(sequencing.Full_Sequencing_Id))%>%
-  select(library.Full_Library_Id, individual.Full_Individual_Id, library.Full_Library_Id, sequencing.Full_Sequencing_Id, sequencing.Run_Id)
+  select(site.Full_Site_Id,site.Name,site.Country, site.Latitude,site.Longitude,site.Date_From,site.Date_To,
+  individual.Main_Individual_Id,individual.Organism,individual.Genetic_Sex,individual.Osteological_Sex,
+  individual.Archaeological_Date_From,individual.Archaeological_Date_To,individual.Archaeological_Date_Info,
+  individual.Archaeological_Culture,individual.Archaeological_Period,individual.C14_Calibrated_From,
+  individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude,
+  individual.Full_Individual_Id, library.Full_Library_Id, sequencing.Full_Sequencing_Id, sequencing.Run_Id)
 
 write_tsv(libraries_deepscreening, paste(output_dir, "Libraries_info.tsv", sep = "/"))
 #libraries_deepscreening
@@ -125,14 +132,39 @@ write_tsv(libraries_deepscreening, paste(output_dir, "Libraries_info.tsv", sep =
 match_expression <- paste(unique(libraries_deepscreening$individual.Full_Individual_Id), collapse = "|")
 
 
-extractLibraries("heatmap_overview_Wevid.tsv", "", match_expression, output_dir, results_path_deepscreening, libraries_deepscreening, "node")
-extractLibraries("RunSummary.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
-extractLibraries("TotalCount.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
-extractLibraries("RunSummary.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
-extractLibraries("TotalCount.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
+HOPS_heatmap <- extractLibraries("heatmap_overview_Wevid.tsv", "", match_expression, output_dir, results_path_deepscreening, libraries_deepscreening, "node")
+ancient_Run_Summary <- extractLibraries("RunSummary.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
+ancient_Total_Count <- extractLibraries("TotalCount.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
+default_Run_Summary <-extractLibraries("RunSummary.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
+default_Total_Count <-extractLibraries("TotalCount.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
 
-# TODO: Copy rma6 files to malt folder
-# TODO: Copy pdf profiles to maltextract/pdf_candidates folder 
+# TODO: format wide to long for heatmap_overview_Wevid.tsv and mix it with pandora table
+final_table <- HOPS_heatmap %>% 
+  pivot_longer(!node, names_to = "sequencing.Full_Sequencing_Id",values_to = "HOPS_Authentication_Step") %>%
+  mutate(HOPS_Authentication_Step = case_when(
+    HOPS_Authentication_Step <= 1 ~ 0,
+    HOPS_Authentication_Step == 2 ~ 1,
+    HOPS_Authentication_Step == 3 ~ 2,
+    HOPS_Authentication_Step == 4 ~ 3
+  )) %>% 
+  rename(Target_Species = "node") %>% 
+  mutate(sequencing.Full_Sequencing_Id = str_remove_all(sequencing.Full_Sequencing_Id, ".unmapped.rma6|_ss")) %>% 
+  left_join(libraries_deepscreening) %>% 
+  relocate(individual.Full_Individual_Id,sequencing.Full_Sequencing_Id,Target_Species,HOPS_Authentication_Step ,individual.Main_Individual_Id,individual.Organism,individual.Genetic_Sex,individual.Osteological_Sex,individual.Archaeological_Date_From,individual.Archaeological_Date_To,individual.Archaeological_Date_Info,individual.Archaeological_Culture,individual.Archaeological_Period,individual.C14_Calibrated_From,individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude)
+
+write_tsv(final_table, paste(output_dir, "Deep_Screening_Libraries_info_HOPS_step.tsv", sep = "/"))
+
+
+# TODO: Copy rma6 files to malt folder - problem cannot open from mounted system.
+#for (sequencing in unique(librariesdeepscreening$sequencing.Run_Id)) {
+#  outdir_malt=paste(output_dir,"malt", sep= "/")
+#  dir.create(output_dir, showWarnings = F, recursive = T)
+#  cmd=paste("ln -s",sequencing,".", sep = " ")
+#  write(paste0("[pandora2AutorunDeepscreeningResults.R] Creating output directory '",output_dir,"'"), stdout())
+#  write(paste0("ln -s ",sequencing," ."), stdout())
+#}
+
+# TODO: Copy pdf profiles to maltextract/pdf_candidates folder
 
 #TODO complete table dumps
 #TODO: Species name dumps
