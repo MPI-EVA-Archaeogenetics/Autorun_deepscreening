@@ -9,3 +9,5 @@ array_Logs/
 scripts/.nextflow/
 scripts/.log
 scripts/.eager_input_log
+scripts/*test*
+scripts/test/*/*/*

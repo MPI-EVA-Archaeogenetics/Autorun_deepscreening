@@ -22,6 +22,13 @@ validate_file <- function(option, opt_str, value, parser) {
          return(value), 
          stop(call.=F, "\n[pandora2AutorunDeepscreeningResults.R] error: No file with libraries provided!\n Please provide a file with library IDs using the -f option"))
 }
+
+validate_file_species <- function(option, opt_str, value, parser) {
+  ifelse(!is.na(value), 
+         return(value), 
+         stop(call.=F, "\n[pandora2AutorunDeepscreeningResults.R] error: No file with species provided!\n Please provide a file with library IDs using the -s option"))
+}
+
 validate_analysis_type <- function(option, opt_str, value, parser) {
   valid_entries <- c("Bacterial_Viral_Prescreening")
   ifelse(value %in% valid_entries, return(value), stop(call.=F, "\n[prepare_eager_tsv.R] error: Invalid analysis type: '", value, 
@@ -35,7 +42,7 @@ validate_sequencing_type <- function(option, opt_str, value, parser) {
 }
 
 ## Functions
-extractLibraries <- function(nameTable, folder, matchExpression, outdir, pathDeepScreening, librariesdeepscreening, column) {
+extractLibraries <- function(nameTable, folder, matchExpression, outdir, pathDeepScreening, librariesdeepscreening, column, speciestable) {
   list_tables <- list()
   for (sequencing in unique(librariesdeepscreening$sequencing.Run_Id)) {
     table <- paste(pathDeepScreening,sequencing,"maltextract","results",folder,nameTable, sep = "/")
@@ -48,8 +55,20 @@ extractLibraries <- function(nameTable, folder, matchExpression, outdir, pathDee
   table_combined <- list_tables %>% 
     lapply(read_tsv) %>% 
     reduce(full_join, by=column) %>% 
-    mutate_each(funs(replace(., which(is.na(.)), 0))) %>%
+    mutate_each(funs(replace(., which(is.na(.)), 0)))
+    
+    #write_tsv(table_combined, "complete_table_unfiltered.tsv")
+
+  if( is.na(speciestable) ){
+    table_combined <- table_combined %>%
     select(column,matches(matchExpression))
+  } else {
+    names<-colnames(table_combined)
+    names <- replace(names, names==column, "node")
+    colnames(table_combined) <- names
+    table_combined <- table_combined %>%
+    filter(node %in% speciestable$node)
+  }
   
   if (!dir.exists(outdir)) {
   dir.create(outdir, showWarnings = F, recursive = T) ## Create output directory and subdirs if they do not exist.
@@ -68,6 +87,12 @@ parser <- add_option(parser, c("-f", "--file_libraries_id"), type = 'character',
                      action = "callback", dest = "file_libraries_id",
                      callback = validate_file,
                      help = "CSV file containing the libraries IDs to gather results for",
+                     default = NA
+                     )
+parser <- add_option(parser, c("-s", "--species_table"), type = 'character', 
+                     action = "callback", dest = "species_table",
+                     callback = validate_file_species,
+                     help = "CSV file containing the target species to gather results for",
                      default = NA
                      )
 parser <- add_option(parser, c("-a", "--analysis_type"), type = 'character',
@@ -96,9 +121,6 @@ type <- opts$sequencing_type
 #Set path to the deep screening results
 results_path_deepscreening <- paste("/mnt/archgen/pathogen_resources/screening/Autorun_deepscreening/eager_outputs",analysis,type,sep = "/")
 
-#Read file containing libraries IDs to extract deep screening results
-libraries <- read.csv(opts$file_libraries_id, header = T)
-
 #Creating output directory if it doesn't exist
 output_dir <- paste(opts$outdir,"maltextract", sep = "/")
 if (!dir.exists(output_dir)) {
@@ -115,28 +137,62 @@ complete_pandora_table <- join_pandora_tables(
 ) %>%
   convert_all_ids_to_values(., con = con)
 
-libraries_deepscreening <- complete_pandora_table %>%
-  filter(library.Full_Library_Id %in% libraries$Library_Id) %>%
-  filter(!is.na(sequencing.Full_Sequencing_Id))%>%
-  select(site.Full_Site_Id,site.Name,site.Country, site.Latitude,site.Longitude,site.Date_From,site.Date_To,
-  individual.Main_Individual_Id,individual.Organism,individual.Genetic_Sex,individual.Osteological_Sex,
+if( !is.na(opts$file_libraries_id) ){
+  #Read file containing libraries IDs to extract deep screening results
+  libraries <- read.csv(opts$file_libraries_id, header = T)
+
+  libraries_deepscreening <- complete_pandora_table %>%
+    filter(library.Full_Library_Id %in% libraries$Library_Id) %>%
+    filter(!is.na(sequencing.Full_Sequencing_Id))%>%
+    select(site.Full_Site_Id,site.Name,site.Country, site.Latitude,site.Longitude,site.Date_From,site.Date_To, individual.Main_Individual_Id,individual.Organism,individual.Genetic_Sex,individual.Osteological_Sex,
   individual.Archaeological_Date_From,individual.Archaeological_Date_To,individual.Archaeological_Date_Info,
   individual.Archaeological_Culture,individual.Archaeological_Period,individual.C14_Calibrated_From,
-  individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude,
+  individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude,sample.Type_Group,sample.Type,
   individual.Full_Individual_Id, library.Full_Library_Id, sequencing.Full_Sequencing_Id, sequencing.Run_Id)
 
-write_tsv(libraries_deepscreening, paste(output_dir, "Libraries_info.tsv", sep = "/"))
-#libraries_deepscreening
+  write_tsv(libraries_deepscreening, paste(output_dir, "Libraries_info.tsv", sep = "/"))
+  #libraries_deepscreening
 
-#Set a match expression to search in the different tables
-match_expression <- paste(unique(libraries_deepscreening$individual.Full_Individual_Id), collapse = "|")
+  #Set a match expression to search in the different tables
+  match_expression <- paste(unique(libraries_deepscreening$individual.Full_Individual_Id), collapse = "|")
+
+  speciesTable <- NA
 
 
-HOPS_heatmap <- extractLibraries("heatmap_overview_Wevid.tsv", "", match_expression, output_dir, results_path_deepscreening, libraries_deepscreening, "node")
-ancient_Run_Summary <- extractLibraries("RunSummary.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
-ancient_Total_Count <- extractLibraries("TotalCount.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
-default_Run_Summary <-extractLibraries("RunSummary.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
-default_Total_Count <-extractLibraries("TotalCount.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node")
+  HOPS_heatmap <- extractLibraries("heatmap_overview_Wevid.tsv", "", match_expression, output_dir, results_path_deepscreening, libraries_deepscreening, "node",speciesTable)
+  ancient_Run_Summary <- extractLibraries("RunSummary.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node", speciesTable)
+  ancient_Total_Count <- extractLibraries("TotalCount.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node", speciesTable)
+  default_Run_Summary <-extractLibraries("RunSummary.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node", speciesTable)
+  default_Total_Count <-extractLibraries("TotalCount.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node", speciesTable)
+}
+
+if( !is.na(opts$species_table) ){
+  #Read file containing libraries IDs to extract deep screening results
+  speciesTable <- read.csv(opts$species_table, header = T)
+  
+
+  libraries_deepscreening <- complete_pandora_table %>%
+    filter(!is.na(sequencing.Full_Sequencing_Id))%>%
+    select(site.Full_Site_Id,site.Name,site.Country, site.Latitude,site.Longitude,site.Date_From,site.Date_To, individual.Main_Individual_Id,individual.Organism,individual.Genetic_Sex,individual.Osteological_Sex,
+  individual.Archaeological_Date_From,individual.Archaeological_Date_To,individual.Archaeological_Date_Info,
+  individual.Archaeological_Culture,individual.Archaeological_Period,individual.C14_Calibrated_From,
+  individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude,sample.Type_Group,sample.Type,
+  individual.Full_Individual_Id, library.Full_Library_Id, sequencing.Full_Sequencing_Id, sequencing.Run_Id)
+
+  #write_tsv(libraries_deepscreening, paste(output_dir, "Libraries_info.tsv", sep = "/"))
+  #libraries_deepscreening
+
+  #Set a match expression to search in the different tables
+  match_expression <- ""
+
+
+  HOPS_heatmap <- extractLibraries("heatmap_overview_Wevid.tsv", "", match_expression, output_dir, results_path_deepscreening, libraries_deepscreening, "node",speciesTable)
+  ancient_Run_Summary <- extractLibraries("RunSummary.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node",speciesTable)
+  ancient_Total_Count <- extractLibraries("TotalCount.txt", "ancient",match_expression, paste(output_dir, "ancient", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node",speciesTable)
+  default_Run_Summary <-extractLibraries("RunSummary.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node",speciesTable)
+  default_Total_Count <-extractLibraries("TotalCount.txt", "default",match_expression, paste(output_dir, "default", sep = "/"), results_path_deepscreening, libraries_deepscreening, "Node",speciesTable)
+}
+
 
 # TODO: format wide to long for heatmap_overview_Wevid.tsv and mix it with pandora table
 final_table <- HOPS_heatmap %>% 
