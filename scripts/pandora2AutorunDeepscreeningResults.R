@@ -177,7 +177,7 @@ if( !is.na(opts$species_table) ){
   individual.Archaeological_Date_From,individual.Archaeological_Date_To,individual.Archaeological_Date_Info,
   individual.Archaeological_Culture,individual.Archaeological_Period,individual.C14_Calibrated_From,
   individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude,sample.Type_Group,sample.Type,
-  individual.Full_Individual_Id, library.Full_Library_Id, sequencing.Full_Sequencing_Id, sequencing.Run_Id)
+  individual.Full_Individual_Id, library.Full_Library_Id, sequencing.Full_Sequencing_Id, sequencing.Run_Id,sequencing.Projects)
 
   #write_tsv(libraries_deepscreening, paste(output_dir, "Libraries_info.tsv", sep = "/"))
   #libraries_deepscreening
@@ -206,7 +206,8 @@ final_table <- HOPS_heatmap %>%
   rename(Target_Species = "node") %>% 
   mutate(sequencing.Full_Sequencing_Id = str_remove_all(sequencing.Full_Sequencing_Id, ".unmapped.rma6|_ss")) %>% 
   left_join(libraries_deepscreening) %>% 
-  relocate(individual.Full_Individual_Id,sequencing.Full_Sequencing_Id,Target_Species,HOPS_Authentication_Step ,individual.Main_Individual_Id,individual.Organism,individual.Genetic_Sex,individual.Osteological_Sex,individual.Archaeological_Date_From,individual.Archaeological_Date_To,individual.Archaeological_Date_Info,individual.Archaeological_Culture,individual.Archaeological_Period,individual.C14_Calibrated_From,individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude)
+  relocate(individual.Full_Individual_Id,sequencing.Full_Sequencing_Id,Target_Species,HOPS_Authentication_Step ,individual.Main_Individual_Id,individual.Organism,individual.Genetic_Sex,individual.Osteological_Sex,individual.Archaeological_Date_From,individual.Archaeological_Date_To,individual.Archaeological_Date_Info,individual.Archaeological_Culture,individual.Archaeological_Period,individual.C14_Calibrated_From,individual.C14_Calibrated_To,individual.C14_Calibrated_Mean,individual.Exclude) %>%
+  filter(HOPS_Authentication_Step >= 1)
 
 write_tsv(final_table, paste(output_dir, "Deep_Screening_Libraries_info_HOPS_step.tsv", sep = "/"))
 
